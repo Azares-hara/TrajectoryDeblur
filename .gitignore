@@ -1,0 +1,15 @@
+# Ignore Jupyter checkpoints
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# Ignore logs
+*.log
+train_log.txt
+
+# Ignore Kaggle/Colab working dirs
+/kaggle/
+/experiment/

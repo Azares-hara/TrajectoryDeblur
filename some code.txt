@@ -1,0 +1,42 @@
+%cd "/kaggle/working/Deblur"
+!python main.py \
+  --n_GPUs 1 \
+  --batch_size 2 \
+  --model ResUNetGenerator \
+  --do_train True \
+  --do_validate True --validate_every 20 \
+  --do_test False \
+  --n_feats 64 \
+  --num_feat 32 \
+  --patch_size 256 \
+  --n_scales 1 \
+  --use_sa True \
+  --use_edge_attention True \
+  --out_activation tanh \
+  --loss L1+LPIPS+FrequencyLoss+ADV \
+  --metric PSNR,SSIM,LPIPS,NIQE,BRISQUE \
+  --use_spectral_norm True \
+  --lr 1e-4 \
+  --lr_D 5e-5 \
+  --milestones 150 250 \
+  --end_epoch 300 \
+  --save_results part \
+  --amp True \
+  --save_every 5 \
+  --scheduler warm_multistep \
+  --w_edge 0.4 --w_spixel 0.0 --w_nonlocal 0.0 \
+  --lambda_blur 0.05 \
+  --lambda_prior 0.1 \
+  --lambda_lpips 0.1 \
+  --lambda_freq 0.05 \
+  --lambda_grad 0.1 \
+  --lambda_adv 0.01 \
+  --lambda_featmatch 0.1 \
+  --lambda_perceptual 0.1 \
+  --clip_grad 5.0 \
+  --freq_disc_feats 64 \
+  --blur_type blur \
+  --data_root /kaggle/input/datasets/lqzmlaq/gopro-large/GOPRO_Large/train \
+  --save_dir /kaggle/working/experiment/2026-05-19_15-46-10 \
+  --resume True \
+  --resume_dir /kaggle/working/experiment/2026-05-19_15-46-10 
