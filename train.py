@@ -13,7 +13,7 @@ import dataset.common
 from dataset.gopro_large import GOPRO_Large, SharpDataset
 from utils import (
     MultiSaver, get_disc_weights, match_size,
-    apply_random_blur, sobel_edges, save_tensor_as_image,
+    apply_random_blur, sobel_edges, save_tensor_as_image, set_seed,
 )
 from lossfunc.frequencyloss import FrequencyLoss
 from lossfunc.metric import PSNR, SSIM, LPIPSMetric, NIQEMetric, BRISQUEMetric
@@ -210,27 +210,39 @@ class Trainer:
         pin_memory = str(args.device).startswith('cuda')
         pf = 2 if num_workers > 0 else None
 
+        _seed = getattr(args, 'seed', 42)
+        def _make_gen(offset):
+            g = torch.Generator()
+            g.manual_seed(_seed + offset)
+        return g
+        def _seed_worker(worker_id):
+            set_seed(_seed + 1000 + worker_id)
+
         self.loaders = {
             'train_blur':DataLoader(blur_dataset,  batch_size=args.batch_size,
                               shuffle=True,  num_workers=num_workers,
                               pin_memory=pin_memory,
                               persistent_workers=True,
                               prefetch_factor=pf),
+                              worker_init_fn=_seed_worker
             'train_sharp': DataLoader(sharp_dataset, batch_size=args.batch_size,
                               shuffle=True,  num_workers=num_workers,
                               pin_memory=pin_memory,
                               persistent_workers=True,
                               prefetch_factor=pf),
+                              worker_init_fn=_seed_worker
             'val':         DataLoader(val_dataset,   batch_size=args.val_batch_size,
                               shuffle=False, num_workers=1,
                               pin_memory=pin_memory,
                               persistent_workers=False,
                               prefetch_factor=pf),
+                              worker_init_fn=_seed_worker
             'test':        DataLoader(test_dataset,  batch_size=args.val_batch_size,
                               shuffle=False, num_workers=num_workers,
                               pin_memory=pin_memory,
                               persistent_workers=False,
                               prefetch_factor=pf),
+                              worker_init_fn=_seed_worker
         }
         self.real_loader = self.loaders['train_blur']
         self.sharp_iter  = iter(self.loaders['train_sharp'])
