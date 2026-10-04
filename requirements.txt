@@ -1,0 +1,16 @@
+# --- TrajectoryDeblur dependencies ---
+#PyTorch with CUDA 11.8 first:
+#pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+
+#pip install -r requirements.txt
+
+torch>=2.0.0
+torchvision>=0.15.0
+tensorboard>=2.12.0        #torch.utils.tensorboard -> SummaryWriter (train.py)
+numpy>=1.24,<2.1
+imageio>=2.31              #imageio.v2 image loading (dataset/)
+scikit-image>=0.21         #dataset/common.py (skimage)
+piq>=0.8.0                 #NIQE / BRISQUE no-reference metrics (lossfunc/metric.py)
+lpips>=0.1.6               #perceptual loss + LPIPS metric (lossfunc/lpips.py)
+matplotlib>=3.7            #trajectory visualization (utils.py)
+tqdm>=4.65                 #training progress bars (train.py)
