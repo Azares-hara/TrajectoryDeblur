@@ -6,15 +6,14 @@ import os
 import torch
 import warnings
 import traceback
-from utils import interact
+from utils import interact, set_seed
 from option import args, setup, cleanup
 from model2 import Model
 from lossfunc import Loss
 from optimizer import Optimizer
 from train import Trainer
 
-warnings.filterwarnings("ignore", category=UserWarning)
-warnings.filterwarnings("ignore", category=FutureWarning)
+set_seed(getattr(args, 'seed', 42) + rank)
 
 def main_worker(rank, args):
     args.rank = rank
@@ -35,8 +34,8 @@ def main_worker(rank, args):
     model = Model(args)
     model.parallelize()
     print(f"Instantiating model with args.model = {args.model}")
-    pretrained_path = '/kaggle/working/model-100-pretrained.pt'
-    if os.path.exists(pretrained_path):
+    pretrained_path = getattr(args, 'pretrained_path', '')
+    if pretrained_path and os.path.exists(pretrained_path):
         print(f"[INFO] Loading pretrained weights from {pretrained_path}")
         ckpt = torch.load(pretrained_path, map_location=args.device)
         model.load_state_dict(ckpt, strict=False)
