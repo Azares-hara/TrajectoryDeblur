@@ -68,7 +68,8 @@ class GOPRO_Large(Dataset):
 
         if sharp is None:
             print(f"[WARN] sharp is None for idx {idx}, blur: {self.blur_list[idx]}")
-            sharp = np.zeros_like(blur)
+            blur = common.np2tensor(blur)
+            sharp = common.np2tensor(sharp) if sharp is not None else None
 
         blur = common.np2tensor(blur)
         sharp = common.np2tensor(sharp)
