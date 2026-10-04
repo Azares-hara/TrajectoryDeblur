@@ -152,6 +152,8 @@ group_optim.add_argument('--scale', type=float, default=10.0, help='warmup LR st
 # Logging
 group_log = parser.add_argument_group('Logging specs')
 group_log.add_argument('--save_dir', type=str, default='', help='subdirectory to save experiment logs')
+group_log.add_argument('--seed', type=int, default=42, help='master random seed for reproducibility')
+group_log.add_argument('--pretrained_path', type=str, default='', help='optional path to pretrained generator weights (empty = train from scratch)')
 group_log.add_argument('--start_epoch', type=int, default=-1, help='(re)starting epoch number')
 group_log.add_argument('--end_epoch', type=int, default=600, help='ending epoch number')
 group_log.add_argument('--load_epoch', type=int, default=-1, help='epoch number to load model (start_epoch-1 for training, start_epoch for testing)')
