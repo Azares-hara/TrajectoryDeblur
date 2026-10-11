@@ -1,3 +1,4 @@
+
 import os
 import numpy as np
 import torch
@@ -38,8 +39,9 @@ class GOPRO_Large(Dataset):
         if idx < len(self.sharp_list):
             try:
                 sharp = self._load_image(self.sharp_list[idx])
-            except Exception:
-                sharp = None
+            except Exception as e:
+               print(f"[WARN] failed to load sharp for {self.sharp_list[idx]}: {e}")
+               sharp = None
 
         relpath = os.path.relpath(self.blur_list[idx], self.subset_root)
 
@@ -66,13 +68,10 @@ class GOPRO_Large(Dataset):
             else:
                 blur, = common.augment(blur)
 
-        if sharp is None:
-            print(f"[WARN] sharp is None for idx {idx}, blur: {self.blur_list[idx]}")
-            blur = common.np2tensor(blur)
-            sharp = common.np2tensor(sharp) if sharp is not None else None
+        
 
         blur = common.np2tensor(blur)
-        sharp = common.np2tensor(sharp)
+        sharp = common.np2tensor(sharp) if sharp is not None else None
 
         return {
             "blur": blur,
