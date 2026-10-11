@@ -56,7 +56,7 @@ parser.add_argument("--reset_discriminator",action="store_true",help="Reset and 
 
 # Device specs
 group_device = parser.add_argument_group('Device specs')
-group_device.add_argument('--seed', type=int, default=-1, help='random seed')
+
 group_device.add_argument('--num_workers', type=int, default=8, help='the number of dataloader workers')
 group_device.add_argument('--device_type', type=str, choices=('cpu', 'cuda'), default='cuda', help='device to run models')
 group_device.add_argument('--device_index', type=int, default=0, help='device id to run models')
@@ -153,7 +153,7 @@ group_optim.add_argument('--scale', type=float, default=10.0, help='warmup LR st
 group_log = parser.add_argument_group('Logging specs')
 group_log.add_argument('--save_dir', type=str, default='', help='subdirectory to save experiment logs')
 group_log.add_argument('--seed', type=int, default=42, help='master random seed for reproducibility')
-group_log.add_argument('--pretrained_path', type=str, default='', help='optional path to pretrained generator weights (empty = train from scratch)')
+group_log.add_argument('--pretrained_path', type=str, default='',help='optional path to pretrained generator weights (empty = train from scratch)')
 group_log.add_argument('--start_epoch', type=int, default=-1, help='(re)starting epoch number')
 group_log.add_argument('--end_epoch', type=int, default=600, help='ending epoch number')
 group_log.add_argument('--load_epoch', type=int, default=-1, help='epoch number to load model (start_epoch-1 for training, start_epoch for testing)')
@@ -210,10 +210,19 @@ if args.resume:
         model_list = [name for name in model_list if is_valid_checkpoint(os.path.join(model_dir, name))]
 
         if model_list:
-            last_epoch = max([int(re.findall("\\d+", name)[0]) for name in model_list])
-            args.manual_load_epoch = last_epoch
-            args.start_epoch = last_epoch + 1
-            print(f"[INFO] Auto-resuming from epoch {last_epoch}")
+            epochs = []
+            for name in model_list:
+                nums = re.findall(r"\d+", name)
+                if nums:
+                    epochs.append(int(nums[0]))
+            if epochs:
+                last_epoch = max(epochs)
+                args.manual_load_epoch = last_epoch
+                args.start_epoch = last_epoch + 1
+                print(f"[INFO] Auto-resuming from epoch {last_epoch}")
+            else:
+                print(f"[WARNING] No valid epoch numbers found in checkpoints. Starting from scratch.")
+                args.start_epoch = 1
         else:
             print(f"[WARNING] No valid checkpoints found in '{model_dir}'. Starting from scratch.")
             args.start_epoch = 1
