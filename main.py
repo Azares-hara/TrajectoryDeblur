@@ -1,7 +1,10 @@
 
 import torch.serialization
 import argparse
-torch.serialization.add_safe_globals([argparse.Namespace])
+try:
+    torch.serialization.add_safe_globals([argparse.Namespace])
+except AttributeError:
+    pass 
 import os
 import torch
 import warnings
@@ -13,10 +16,10 @@ from lossfunc import Loss
 from optimizer import Optimizer
 from train import Trainer
 
-set_seed(getattr(args, 'seed', 42) + rank)
 
 def main_worker(rank, args):
     args.rank = rank
+    set_seed(getattr(args, 'seed', 42) + rank)
 
     if args.device_type == "cuda" and torch.cuda.is_available():
         args.device = f"cuda:{getattr(args, 'device_index', 0)}"
