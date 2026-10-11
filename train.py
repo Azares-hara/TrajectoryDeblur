@@ -1,8 +1,10 @@
+
 #Blur-to-Sharp Curriculum Learning for Motion Deblurring
 #The model learns blur first, then gradually retracts to sharp
 import os
 import re
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 torch.backends.cudnn.benchmark = True
 from torch.utils.data import DataLoader
@@ -215,36 +217,36 @@ class Trainer:
             g = torch.Generator()
             g.manual_seed(_seed + offset)
             return g
-            def _seed_worker(worker_id):
-                set_seed(_seed + 1000 + worker_id)
+        def _seed_worker(worker_id):
+            set_seed(_seed + 1000 + worker_id)
 
-            self.loaders = {
-                'train_blur':  DataLoader(blur_dataset,  batch_size=args.batch_size,
-                                  shuffle=True,  num_workers=num_workers,
-                                  pin_memory=pin_memory,
-                                  persistent_workers=True,
-                                  prefetch_factor=pf,
-                                  worker_init_fn=_seed_worker,
-                                  generator=_make_gen(0)),
-                'train_sharp': DataLoader(sharp_dataset, batch_size=args.batch_size,
-                                  shuffle=True,  num_workers=num_workers,
-                                  pin_memory=pin_memory,
-                                  persistent_workers=True,
-                                  prefetch_factor=pf,
-                                  worker_init_fn=_seed_worker,
-                                  generator=_make_gen(1)),
-                'val':DataLoader(val_dataset,   batch_size=args.val_batch_size,
-                                  shuffle=False, num_workers=1,
-                                  pin_memory=pin_memory,
-                                  persistent_workers=False,
-                                  prefetch_factor=pf,
-                                  worker_init_fn=_seed_worker),
-                'test':DataLoader(test_dataset,  batch_size=args.val_batch_size,
-                                  shuffle=False, num_workers=num_workers,
-                                  pin_memory=pin_memory,
-                                  persistent_workers=False,
-                                  prefetch_factor=pf,
-                                  worker_init_fn=_seed_worker),
+        self.loaders = {
+            'train_blur':  DataLoader(blur_dataset,  batch_size=args.batch_size,
+                              shuffle=True,  num_workers=num_workers,
+                              pin_memory=pin_memory,
+                              persistent_workers=True,
+                              prefetch_factor=pf,
+                              worker_init_fn=_seed_worker,
+                              generator=_make_gen(0)),
+            'train_sharp': DataLoader(sharp_dataset, batch_size=args.batch_size,
+                              shuffle=True,  num_workers=num_workers,
+                              pin_memory=pin_memory,
+                              persistent_workers=True,
+                              prefetch_factor=pf,
+                              worker_init_fn=_seed_worker,
+                              generator=_make_gen(1)),
+            'val':         DataLoader(val_dataset,   batch_size=args.val_batch_size,
+                              shuffle=False, num_workers=1,
+                              pin_memory=pin_memory,
+                              persistent_workers=False,
+                              prefetch_factor=pf,
+                              worker_init_fn=_seed_worker),
+            'test':        DataLoader(test_dataset,  batch_size=args.val_batch_size,
+                              shuffle=False, num_workers=num_workers,
+                              pin_memory=pin_memory,
+                              persistent_workers=False,
+                              prefetch_factor=pf,
+                              worker_init_fn=_seed_worker),
         }
         self.real_loader = self.loaders['train_blur']
         self.sharp_iter  = iter(self.loaders['train_sharp'])
@@ -947,7 +949,7 @@ class Trainer:
                         self.tb_logger.add_scalar("Weights/W_PHASE", W_PHASE, global_step)
                         self.tb_logger.add_scalar("Weights/Ramp", ramp, global_step)
                         # Log task balancer sigmas
-                        for i, name in enumerate(["L1","LPIPS","Grad","FFT","Phase","SSIM","Edge","Aura"]:
+                        for i, name in enumerate(["L1","LPIPS","Grad","FFT","Phase","SSIM","Edge","Aura"]):
                             self.tb_logger.add_scalar(f"Balancer/sigma_{name}", torch.exp(self.task_balancer.log_sigma[i]).item(), global_step)
 
                         self.epoch_loss_sum += total_loss.item() * ACCUM_STEPS
@@ -982,8 +984,7 @@ class Trainer:
                         f"BB={blur_band_val.item():.4f}, DL={depth_layer_val.item():.4f}, "
                         f"GE={ghost_edge_val.item():.4f}, CIRC={circ_loss.item():.4f}, "
                         f"Aura={aura_loss.item():.4f}, BlurCons={blur_consistency.item():.4f}, "
-                        f"CW={circ_weight:.4f}
-"
+                        f"CW={circ_weight:.4f}\n"
                     )
                     self.log_file.write(log_line)
                     self.log_file.flush()
@@ -1127,21 +1128,17 @@ class Trainer:
                 f"[{mode.capitalize()} Epoch {epoch}] Paired N={len(psnr_vals)} "
                 f"PSNR={sum(psnr_vals)/len(psnr_vals):.2f} "
                 f"SSIM={sum(ssim_vals)/len(ssim_vals):.4f} "
-                f"LPIPS={sum(lpips_vals)/len(lpips_vals):.4f}
-")
+                f"LPIPS={sum(lpips_vals)/len(lpips_vals):.4f}\n")
         else:
-            log_line = f"[{mode.capitalize()} Epoch {epoch}] No paired reference metrics.
-"
+            log_line = f"[{mode.capitalize()} Epoch {epoch}] No paired reference metrics.\n"
 
         if niqe_vals:
             avg_brisque = sum(brisque_vals) / len(brisque_vals) if brisque_vals else float('nan')
             log_line += (
                 f"[{mode.capitalize()} Epoch {epoch}] Unpaired N={len(niqe_vals)} "
-                f"NIQE={sum(niqe_vals)/len(niqe_vals):.2f} BRISQUE={avg_brisque:.2f}
-")
+                f"NIQE={sum(niqe_vals)/len(niqe_vals):.2f} BRISQUE={avg_brisque:.2f}")
 
-        log_line += f"[INFO] Paired: {paired_count}, Unpaired: {unpaired_count}
-"
+        log_line += f"[INFO] Paired: {paired_count}, Unpaired: {unpaired_count}\n"
         self.log_file.write(log_line)
         print(log_line)
         self.log_file.flush()
