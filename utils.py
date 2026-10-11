@@ -1,3 +1,4 @@
+
 import code
 import pdb
 import time
@@ -18,8 +19,15 @@ try:
 except ImportError:
     print("[WARNING] readline not available - autocomplete disabled.")
 
+if __name__ != "__main__" and 'ipykernel' in sys.modules:
+    print("[WARNING] Multiprocessing may not behave as expected in Jupyter.")
+
 def set_seed(seed=42, deterministic=False):
     """Seed Python's random, NumPy and PyTorch (CPU + all CUDA devices).
+
+    Call once at program start. DataLoader workers should re-seed via
+    worker_init_fn (see train.py). deterministic=True enables fully
+    deterministic CUDA ops at a speed cost — use only for final runs.
     """
     random.seed(seed)
     np.random.seed(seed % (2 ** 32))
@@ -29,9 +37,6 @@ def set_seed(seed=42, deterministic=False):
     if deterministic:
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
-
-if __name__ != "__main__" and 'ipykernel' in sys.modules:
-    print("[WARNING] Multiprocessing may not behave as expected in Jupyter.")
 
 def save_trajectory_visualization(trajectory, save_path):
     """
